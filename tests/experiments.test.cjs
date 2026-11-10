@@ -1,0 +1,8 @@
+const test=require('node:test');const assert=require('node:assert/strict');const L=require('../dist/experiments-core.js');
+const diagonal={W:[[1,1],[-1,-1],[1,0],[0,1]],b:[0,0,0,0],v:[6,-6,0,0],bias:0};
+test('validates shape, finite numeric values and bounds',()=>{assert.deepEqual(L.validate(diagonal),diagonal);for(const bad of [{...diagonal,v:[1]},{...diagonal,bias:'0'},{...diagonal,bias:NaN},{...diagonal,bias:101},{...diagonal,W:[[1,1]]}])assert.throws(()=>L.validate(bad));});
+test('crafted diagonal works on unseen random inputs and broken weight regresses',()=>{const target=(x,y)=>x+y>0;const good=L.score(diagonal,target,123);assert.equal(good.agreement,1);const broken=L.copy(diagonal);broken.v[0]=-6;assert.ok(L.score(broken,target,123).agreement<.6);assert.equal(L.delta(broken,diagonal),1);});
+test('shuffling hidden units preserves function',()=>{const n=L.shuffled(diagonal,L.rng(42));for(let x=-1;x<=1;x+=.1)assert.ok(Math.abs(L.probability(diagonal,x,.2)-L.probability(n,x,.2))<1e-12);});
+test('zeros and seeded evaluation are reproducible',()=>{assert.equal(L.probability(L.zeros(),.2,.4),.5);assert.deepEqual(L.score(diagonal,(x,y)=>x*y<0,42),L.score(diagonal,(x,y)=>x*y<0,42));});
+test('parses JSON fences but never executes model output',()=>{assert.equal(L.parse('```json\n{"label":"xor"}\n```').label,'xor');assert.throws(()=>L.parse('alert(1)'));assert.throws(()=>L.parse('null'));});
+test('band and XOR proposals generalize beyond the visible grid',()=>{const band={W:[[1,0],[-1,0],[0,1],[0,-1]],b:[0,0,0,0],v:[-8,-8,0,0],bias:3.2};const xor={W:[[1,1],[-1,-1],[1,-1],[-1,1]],b:[0,0,0,0],v:[-6,-6,6,6],bias:0};assert.equal(L.score(band,(x,y)=>Math.abs(x)<.4,9876).agreement,1);assert.equal(L.score(xor,(x,y)=>x*y<0,8765).agreement,1);});

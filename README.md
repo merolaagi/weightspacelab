@@ -25,3 +25,17 @@ This educational demo uses no LLM and does not reproduce the research benchmarks
 This GitHub repository is the canonical source. For every completed iteration, validate the JavaScript, commit and push the changes to `main`, and verify that the **Deploy Weightspace Lab** GitHub Actions workflow succeeds. Every push deploys `dist/` to GitHub Pages and updates the custom domain automatically. Keep the repository and live app in sync through this workflow; no ChatGPT hosting is required.
 
 DNS: CNAME `weightspacelab` → `merolaagi.github.io` (DNS only). The custom domain is also configured in the repository's Pages settings.
+
+## Model experiments (v0.2)
+
+The experiment workspace adds three small-network tasks: identify a shuffled mystery network, repair a snapshot of the current network, and construct weights from zero for the selected pattern. There are three connection modes:
+
+1. **Manual exchange:** prepare and copy the exact prompt, send it to any model you choose, and paste its JSON answer.
+2. **Cloud API / your own key:** enter a trusted, browser-compatible chat-completions endpoint and model ID. The key stays in memory and goes only to that endpoint. The provider must allow browser CORS requests; the app does not bypass provider restrictions or proxy keys.
+3. **Local model:** use a loopback server exposing `/v1/chat/completions`, such as a configured Ollama instance. Enter an installed model name. The server must allow the app's origin; browser local-network access restrictions may require serving this app locally. There is no bundled model and no automatic model download.
+
+Model calls require HTTPS or a localhost app origin. Manual exchange also works over HTTP. Responses must be JSON, not executable code. Numerical proposals are shape/range validated, scored on 1,024 seeded random points, and applied only after explicit review. Run exports include the prompt, response, initial weights, seed, and results, but never API keys.
+
+The evaluator supports only the three built-in target patterns and the 2→4→1 network. Extra natural-language instructions guide the model but do not change the target evaluator. Reading is a three-family identification test, not arbitrary checkpoint interpretation. Qwen/game experiments and research benchmarks are not implemented.
+
+Run verification with `node --test tests/*.test.cjs`.
